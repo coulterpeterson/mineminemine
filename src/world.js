@@ -93,12 +93,31 @@ export class World {
         const key = `${Math.floor(x)},${Math.floor(y)},${Math.floor(z)}`;
         return this.blocks[key];
     }
+    
+    // Get just the block ID at a position
+    getBlockType(x, y, z) {
+        const block = this.getBlock(x, y, z);
+        return block ? block.type : blocks.AIR;
+    }
+
+    // Check if a block position is suitable for player to stand on
+    isSolidBlock(x, y, z) {
+        const block = this.getBlock(x, y, z);
+        return block && block.def && !block.def.transparent;
+    }
 
     addBlock(x, y, z, blockId) {
         const xi = Math.floor(x);
         const yi = Math.floor(y);
         const zi = Math.floor(z);
         const key = `${xi},${yi},${zi}`;
+
+        // Don't allow placing blocks where the player is
+        // This could be improved with more sophisticated collision detection
+        if (this.isPositionOccupiedByPlayer(xi, yi, zi)) {
+            console.log("Cannot place block where player is standing");
+            return false;
+        }
 
         if (this.blocks[key]) {
             // console.warn(`Block already exists at ${key}. Replacing.`);
@@ -108,7 +127,7 @@ export class World {
         const blockDef = getBlockDef(blockId);
         if (!blockDef || blockId === blocks.AIR) {
             // console.log(`Skipping adding AIR block at ${key}`);
-            return; // Don't add air blocks or unknown blocks
+            return false; // Don't add air blocks or unknown blocks
         }
 
         // Use pre-calculated UVs and the shared material
@@ -126,6 +145,7 @@ export class World {
         this.blocks[key] = { type: blockId, def: blockDef, mesh: mesh };
         this.meshes[key] = mesh;
         // console.log(`Added block ${blockDef.name} at ${key}`);
+        return true;
     }
 
     removeBlock(x, y, z) {
@@ -157,6 +177,31 @@ export class World {
             // console.warn(`No block found at ${key} to remove.`);
             return false;
         }
+    }
+    
+    // Helper method to check if a block position is where the player is standing
+    // This is a simple approximation - could be improved with proper collision detection
+    isPositionOccupiedByPlayer(x, y, z) {
+        // Get player position - assumes camera is at player's eyes
+        const camera = this.scene.getObjectByName('camera');
+        if (!camera) return false;
+        
+        const playerPos = camera.position.clone();
+        
+        // Check if block is within player's bounds
+        // Player is approximately 1.8 blocks tall and 0.6 blocks wide
+        const playerMinX = playerPos.x - 0.3;
+        const playerMaxX = playerPos.x + 0.3;
+        const playerMinY = playerPos.y - 1.8; // Player's feet
+        const playerMaxY = playerPos.y;       // Player's eyes
+        const playerMinZ = playerPos.z - 0.3;
+        const playerMaxZ = playerPos.z + 0.3;
+        
+        return (
+            x >= Math.floor(playerMinX) && x <= Math.floor(playerMaxX) &&
+            y >= Math.floor(playerMinY) && y <= Math.floor(playerMaxY) &&
+            z >= Math.floor(playerMinZ) && z <= Math.floor(playerMaxZ)
+        );
     }
 
     // --- Future Methods ---

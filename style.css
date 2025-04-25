@@ -33,4 +33,129 @@ canvas {
     text-shadow: 1px 1px 2px black; /* Make it more visible */
     pointer-events: none; /* Don't let it interfere with mouse clicks */
     z-index: 20; /* Above instructions */
+}
+
+/* Inventory Styles */
+#hotbar {
+    position: fixed;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    background-color: rgba(0, 0, 0, 0.5);
+    padding: 5px;
+    border-radius: 5px;
+    z-index: 30;
+}
+
+.hotbar-slot {
+    width: 40px;
+    height: 40px;
+    margin: 0 3px;
+    background-color: rgba(150, 150, 150, 0.5);
+    border: 2px solid #555;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.hotbar-slot.selected {
+    border-color: white;
+    background-color: rgba(200, 200, 200, 0.7);
+}
+
+#inventory {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: rgba(30, 30, 30, 0.9);
+    border: 2px solid #333;
+    border-radius: 5px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    z-index: 40;
+}
+
+.crafting-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 40px) 20px 40px;
+    grid-template-rows: repeat(2, 40px);
+    gap: 5px;
+    justify-content: center;
+    padding: 10px;
+    background-color: rgba(80, 80, 80, 0.4);
+    border-radius: 5px;
+}
+
+.crafting-slot {
+    width: 40px;
+    height: 40px;
+    background-color: rgba(150, 150, 150, 0.5);
+    border: 2px solid #555;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.crafting-output {
+    width: 40px;
+    height: 40px;
+    background-color: rgba(180, 180, 180, 0.5);
+    border: 2px solid #777;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    grid-column: 4;
+    grid-row: 1/3;
+}
+
+.main-inventory {
+    display: grid;
+    grid-template-columns: repeat(9, 40px);
+    grid-template-rows: repeat(3, 40px);
+    gap: 5px;
+    justify-content: center;
+    padding: 10px;
+    background-color: rgba(60, 60, 60, 0.4);
+    border-radius: 5px;
+}
+
+.inventory-slot {
+    width: 40px;
+    height: 40px;
+    background-color: rgba(150, 150, 150, 0.5);
+    border: 2px solid #555;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.item {
+    width: 32px;
+    height: 32px;
+    background-color: rgba(100, 100, 100, 0.8);
+    font-size: 10px;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.item-count {
+    position: absolute;
+    bottom: -2px;
+    right: -2px;
+    font-size: 10px;
+    color: white;
+    background-color: rgba(0, 0, 0, 0.7);
+    padding: 1px 3px;
+    border-radius: 3px;
 } 

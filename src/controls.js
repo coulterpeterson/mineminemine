@@ -5,8 +5,16 @@ const PLAYER_HEIGHT = 1.6; // Player eye height (from spec)
 const PLAYER_BODY_HEIGHT = 1.8; // Collision height (from spec)
 const PLAYER_WIDTH = 0.3; // Half width for collision checks (0.6 / 2)
 const PLAYER_SPEED = 1.0;
+const GAMEPAD_MOVE_SPEED = 1.2; // Slightly higher for analog controls for better feel
 const GRAVITY = 20.0; // A bit stronger gravity
 const JUMP_VELOCITY = 8.0; // A bit higher jump
+const GAMEPAD_LOOK_SENSITIVITY = 2.5; // Right stick sensitivity for camera rotation
+const GAMEPAD_LOOK_DEADZONE = 0.25; // Deadzone for right stick to prevent drift
+
+// Debug flag for logging camera issues
+const DEBUG_CAMERA = true;
+let debugFrameCounter = 0;
+const DEBUG_LOG_FREQUENCY = 60; // Log every 60 frames (approx 1 second at 60fps)
 
 // Helper function to check for collision at a specific point
 // function checkCollision(world, x, y, z) { // MOVE THIS FUNCTION
@@ -38,6 +46,22 @@ export function createControls(camera, domElement, getWorld) {
     let moveLeft = false;
     let moveRight = false;
     let onGround = true; // Assume starting on ground
+    
+    // Gamepad state
+    let gamepadState = {
+        leftStick: { x: 0, y: 0 },
+        rightStick: { x: 0, y: 0 },
+        buttons: {
+            jump: false,
+            sprint: false,
+            breakBlock: false,
+            placeBlock: false
+        }
+    };
+    
+    // Store raw gamepad data for debugging
+    let rawRightStickX = 0;
+    let rawRightStickY = 0;
 
     const onKeyDown = (event) => {
         switch (event.code) {
@@ -108,8 +132,106 @@ export function createControls(camera, domElement, getWorld) {
 
     document.addEventListener('keydown', onKeyDown);
     document.addEventListener('keyup', onKeyUp);
+    
+    // Helper function to apply deadzone to analog sticks
+    function applyDeadzone(value, deadzone) {
+        // Log the raw value before deadzone application
+        if (DEBUG_CAMERA && debugFrameCounter % DEBUG_LOG_FREQUENCY === 0) {
+            console.log(`Raw stick value: ${value.toFixed(6)}, Deadzone: ${deadzone}`);
+        }
+        
+        // Calculate value to return
+        if (Math.abs(value) < deadzone) {
+            return 0;
+        } else {
+            // Normalize the value after removing the deadzone
+            // This gives a smoother transition at the deadzone boundary
+            const sign = value > 0 ? 1 : -1;
+            return sign * (Math.abs(value) - deadzone) / (1 - deadzone);
+        }
+    }
+    
+    // Method to receive gamepad state from main.js
+    function updateGamepadState(newState) {
+        // Store raw values for debugging
+        rawRightStickX = newState.rightStick.x;
+        rawRightStickY = newState.rightStick.y;
+        
+        // Apply deadzone to the right stick input before storing it
+        const rightStickX = applyDeadzone(newState.rightStick.x, GAMEPAD_LOOK_DEADZONE);
+        const rightStickY = applyDeadzone(newState.rightStick.y, GAMEPAD_LOOK_DEADZONE);
+        
+        // Log the raw and processed values
+        if (DEBUG_CAMERA && debugFrameCounter % DEBUG_LOG_FREQUENCY === 0) {
+            console.log(`Raw Right Stick: X=${rawRightStickX.toFixed(6)}, Y=${rawRightStickY.toFixed(6)}`);
+            console.log(`After Deadzone: X=${rightStickX.toFixed(6)}, Y=${rightStickY.toFixed(6)}`);
+        }
+        
+        // Update state with deadzone-filtered values
+        gamepadState = {
+            ...newState,
+            rightStick: { 
+                x: rightStickX, 
+                y: rightStickY 
+            }
+        };
+        
+        // Process gamepad jump button
+        if (gamepadState.buttons.jump && onGround) {
+            velocity.y = JUMP_VELOCITY;
+            onGround = false;
+        }
+        
+        // Handle right stick camera rotation when locked
+        // Only rotate camera if stick is outside the deadzone
+        if (controls.isLocked && 
+            (Math.abs(gamepadState.rightStick.x) > 0 || Math.abs(gamepadState.rightStick.y) > 0)) {
+            handleRightStickCameraRotation();
+        }
+    }
+    
+    // Handle right stick camera rotation
+    function handleRightStickCameraRotation() {
+        // Get current camera rotation values
+        const euler = new THREE.Euler(0, 0, 0, 'YXZ');
+        euler.setFromQuaternion(camera.quaternion);
+        
+        // Log current rotation before changes
+        if (DEBUG_CAMERA && debugFrameCounter % DEBUG_LOG_FREQUENCY === 0) {
+            console.log(`Before Rotation: Pitch=${euler.x.toFixed(6)}, Yaw=${euler.y.toFixed(6)}`);
+        }
+        
+        // Calculate rotation delta - FIXING THE SIGNS HERE
+        // Yaw (left/right) needs to be inverted from right stick X
+        // Pitch (up/down) needs to be inverted from right stick Y
+        const yawDelta = -gamepadState.rightStick.x * GAMEPAD_LOOK_SENSITIVITY * 0.02;
+        const pitchDelta = -gamepadState.rightStick.y * GAMEPAD_LOOK_SENSITIVITY * 0.02;
+        
+        if (DEBUG_CAMERA && debugFrameCounter % DEBUG_LOG_FREQUENCY === 0) {
+            console.log(`Rotation Delta: Pitch=${pitchDelta.toFixed(6)}, Yaw=${yawDelta.toFixed(6)}`);
+        }
+        
+        // Apply right stick input to camera rotation with proper direction
+        euler.y += yawDelta;     // Left/Right rotation (yaw) - negative means turn left
+        euler.x += pitchDelta;   // Up/Down rotation (pitch) - negative means look down
+        
+        // Clamp vertical look to prevent camera flipping
+        euler.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, euler.x));
+        
+        // Log the final rotation values
+        if (DEBUG_CAMERA && debugFrameCounter % DEBUG_LOG_FREQUENCY === 0) {
+            console.log(`After Rotation: Pitch=${euler.x.toFixed(6)}, Yaw=${euler.y.toFixed(6)}`);
+            console.log("-----------------");
+        }
+        
+        // Apply the rotation
+        camera.quaternion.setFromEuler(euler);
+    }
 
     function update(delta) {
+        // Increment debug frame counter
+        debugFrameCounter++;
+        
         const currentWorld = getWorld(); // Get current world instance
         // Guard clause: Ensure world is loaded before doing physics/collision
         if (!currentWorld) {
@@ -131,26 +253,68 @@ export function createControls(camera, domElement, getWorld) {
         velocity.x -= velocity.x * 15.0 * delta;
         velocity.z -= velocity.z * 15.0 * delta;
 
-        // Calculate movement direction
-        direction.z = Number(moveForward) - Number(moveBackward);
-        direction.x = Number(moveLeft) - Number(moveRight);
-        direction.normalize(); // Ensure consistent speed diagonally
-
-        // Apply movement intention to velocity
-        if (moveForward || moveBackward) velocity.z -= direction.z * PLAYER_SPEED * delta * 100; // Use higher multiplier for snappier feel
-        if (moveLeft || moveRight) velocity.x -= direction.x * PLAYER_SPEED * delta * 100;
-
-        // Calculate potential next position for collision checking
+        // Get camera orientation vectors for movement
         const forwardVector = new THREE.Vector3();
         camera.getWorldDirection(forwardVector);
-        forwardVector.y = 0;
+        forwardVector.y = 0; // Project onto the xz plane (horizontal only)
         forwardVector.normalize();
 
         const rightVector = new THREE.Vector3();
         rightVector.crossVectors(camera.up, forwardVector).normalize();
 
-        const deltaX = (-velocity.x * delta * rightVector.x - velocity.z * delta * forwardVector.x);
-        const deltaZ = (-velocity.x * delta * rightVector.z - velocity.z * delta * forwardVector.z);
+        // Check if using gamepad
+        const usingGamepad = Math.abs(gamepadState.leftStick.x) > 0 || Math.abs(gamepadState.leftStick.y) > 0;
+        
+        if (usingGamepad) {
+            // GAMEPAD MOVEMENT - camera-relative
+            // Reset the velocity (we'll set it directly from stick input)
+            velocity.x = 0;
+            velocity.z = 0;
+            
+            // Create movement vectors from stick input
+            // Important: use X for side-to-side and Y for forward/back
+            const stickX = gamepadState.leftStick.x;
+            const stickY = gamepadState.leftStick.y;
+            
+            // Add movement in camera-relative directions
+            // Forward direction uses negative Z in Three.js (out of screen)
+            velocity.z -= forwardVector.z * stickY * GAMEPAD_MOVE_SPEED * 5;
+            velocity.x -= forwardVector.x * stickY * GAMEPAD_MOVE_SPEED * 5;
+            
+            // Right direction is perpendicular to forward
+            velocity.z += rightVector.z * stickX * GAMEPAD_MOVE_SPEED * 5;
+            velocity.x += rightVector.x * stickX * GAMEPAD_MOVE_SPEED * 5;
+            
+            if (DEBUG_CAMERA && debugFrameCounter % DEBUG_LOG_FREQUENCY === 0) {
+                console.log(`Stick input: X=${stickX.toFixed(3)}, Y=${stickY.toFixed(3)}`);
+                console.log(`Movement velocity: X=${velocity.x.toFixed(3)}, Z=${velocity.z.toFixed(3)}`);
+            }
+        } else {
+            // KEYBOARD MOVEMENT
+            // Process keyboard input
+            direction.z = Number(moveForward) - Number(moveBackward);
+            direction.x = Number(moveLeft) - Number(moveRight);
+            
+            // Normalize direction to keep consistent speed when moving diagonally
+            if (direction.x !== 0 || direction.z !== 0) {
+                direction.normalize();
+            }
+            
+            // Apply keyboard movement
+            if (direction.z !== 0) {
+                velocity.z -= forwardVector.z * direction.z * PLAYER_SPEED * 5;
+                velocity.x -= forwardVector.x * direction.z * PLAYER_SPEED * 5;
+            }
+            
+            if (direction.x !== 0) {
+                velocity.z += rightVector.z * direction.x * PLAYER_SPEED * 5;
+                velocity.x += rightVector.x * direction.x * PLAYER_SPEED * 5;
+            }
+        }
+
+        // Calculate potential next position for collision checking
+        const deltaX = velocity.x * delta;
+        const deltaZ = velocity.z * delta;
 
         // Check X collision
         const nextX = playerPos.x + deltaX;
@@ -229,6 +393,7 @@ export function createControls(camera, domElement, getWorld) {
     return {
         controls: controls,
         update: update,
+        updateGamepadState: updateGamepadState,
         getObject: () => controls.getObject(),
         getVelocity: () => velocity,
         isOnGround: () => onGround // Changed from isJumping

@@ -218,7 +218,22 @@ export async function loadTextures(THREE) {
                     context.fillStyle = 'magenta';
                     context.fillRect(currentX, currentY, textureSize, textureSize);
                 } else {
+                    // Draw the image to the canvas
                     context.drawImage(image, currentX, currentY, textureSize, textureSize);
+                    
+                    // Apply green tint to grass_block_top texture
+                    if (texName === 'grass_block_top') {
+                        // Save context state before applying tint
+                        context.save();
+                        // Set blend mode to multiply for color tinting
+                        context.globalCompositeOperation = 'multiply';
+                        // Use a green color for tinting
+                        context.fillStyle = 'rgb(94, 157, 52)'; // Adjust to match the side grass color
+                        context.fillRect(currentX, currentY, textureSize, textureSize);
+                        // Restore context state
+                        context.restore();
+                        console.log('Applied green tint to grass_block_top texture');
+                    }
                 }
                 loadedTextures[texName] = texture; // Store the loaded texture itself if needed
 

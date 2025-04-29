@@ -4,7 +4,7 @@ import { PointerLockControls } from 'three/addons/controls/PointerLockControls.j
 const PLAYER_HEIGHT = 1.6; // Player eye height (from spec)
 const PLAYER_BODY_HEIGHT = 1.8; // Collision height (from spec)
 const PLAYER_WIDTH = 0.3; // Half width for collision checks (0.6 / 2)
-const PLAYER_SPEED = 1.0;
+const PLAYER_SPEED = 0.35;
 const GAMEPAD_MOVE_SPEED = 1.2; // Slightly higher for analog controls for better feel
 const GRAVITY = 20.0; // A bit stronger gravity
 const JUMP_VELOCITY = 8.0; // A bit higher jump
@@ -292,7 +292,7 @@ export function createControls(camera, domElement, getWorld) {
         } else {
             // KEYBOARD MOVEMENT
             // Process keyboard input
-            direction.z = Number(moveForward) - Number(moveBackward);
+            direction.z = Number(moveBackward) - Number(moveForward);
             direction.x = Number(moveLeft) - Number(moveRight);
             
             // Normalize direction to keep consistent speed when moving diagonally

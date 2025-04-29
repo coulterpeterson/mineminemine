@@ -1,6 +1,6 @@
 # MineMineMine
 
-A Minecraft clone built in Three.js
+A Minecraft clone built in Three.js. [Check out the demo here](https://mine.coulterpeterson.com).
 
 ## Dev notes
 * Run locally with `python3 -m http.server`

@@ -14,6 +14,7 @@ A Minecraft clone built in Three.js
 - [ ] Fix occasional teleport when jumping from too high
 - [ ] Fix ability to place a block that overlaps with the player (like when building a tower you're standing on)
 - [ ] Fix controller mode creating and destroying blocks too rapidly
+- [ ] Remove unnecessary local packages from package.json OR switch from CDN to webpack setup
 - [ ] Likely more...
 
 ### Features to add

@@ -1,4 +1,4 @@
-import { blocks } from './blockRegistry.js';
+import { blocks, blockDefs, getBlockDef } from './blockRegistry.js';
 
 // Constants
 const HOTBAR_SIZE = 9;
@@ -27,19 +27,18 @@ export class Inventory {
         this.hotbar[4] = { id: blocks.OAK_PLANKS, count: 64 };
     }
     
-    // Get the currently selected block from hotbar
+    // Get the currently selected block
     getSelectedBlock() {
         return this.hotbar[this.selectedSlot];
     }
     
     // Select a specific hotbar slot
     selectHotbarSlot(slot) {
+        // Validate slot index
         if (slot >= 0 && slot < HOTBAR_SIZE) {
             this.selectedSlot = slot;
             this.updateHotbarUI();
-            return true;
         }
-        return false;
     }
     
     // Add item to inventory (returns true if added successfully)
@@ -87,15 +86,15 @@ export class Inventory {
         return false;
     }
     
-    // Remove one item from the selected hotbar slot
+    // Remove one from the selected item
     removeSelectedItem() {
-        const selectedItem = this.hotbar[this.selectedSlot];
-        if (selectedItem && selectedItem.count > 0) {
-            selectedItem.count--;
-            if (selectedItem.count <= 0) {
+        const item = this.hotbar[this.selectedSlot];
+        if (item && item.count > 0) {
+            item.count--;
+            if (item.count <= 0) {
                 this.hotbar[this.selectedSlot] = null;
             }
-            this.updateHotbarUI();
+            this.updateInventoryUI();
             return true;
         }
         return false;
@@ -194,6 +193,26 @@ export class Inventory {
         }
     }
     
+    // Helper method to get block texture path
+    getBlockTexturePath(blockId) {
+        const def = getBlockDef(blockId);
+        if (!def || !def.texture) return null;
+        
+        let textureName;
+        if (typeof def.texture === 'string') {
+            textureName = def.texture;
+        } else if (typeof def.texture === 'object') {
+            // For blocks with multiple textures, use the side texture for inventory display
+            textureName = def.texture.side || def.texture.top || Object.values(def.texture)[0];
+        }
+        
+        if (textureName) {
+            return `assets/textures/block/${textureName}.png`;
+        }
+        
+        return null;
+    }
+    
     // Update hotbar UI to reflect current inventory state
     updateHotbarUI() {
         const hotbarUI = document.getElementById('hotbar');
@@ -218,9 +237,19 @@ export class Inventory {
                 const itemEl = document.createElement('div');
                 itemEl.className = 'item';
                 
-                // Add item texture - we can use block id for now
-                // Later we can add actual textures
-                itemEl.textContent = item.id;
+                // Get block definition to get texture
+                const texturePath = this.getBlockTexturePath(item.id);
+                
+                if (texturePath) {
+                    // Set the background image to the block texture
+                    itemEl.style.backgroundImage = `url('${texturePath}')`;
+                    itemEl.style.backgroundSize = 'cover';
+                    itemEl.style.backgroundPosition = 'center';
+                    itemEl.style.backgroundColor = 'transparent';
+                } else {
+                    // Fallback to just showing block ID
+                    itemEl.textContent = item.id;
+                }
                 
                 // Add count if more than 1
                 if (item.count > 1) {
@@ -258,8 +287,19 @@ export class Inventory {
                 const itemEl = document.createElement('div');
                 itemEl.className = 'item';
                 
-                // Add item texture - we can use block id for now
-                itemEl.textContent = item.id;
+                // Get block definition to get texture
+                const texturePath = this.getBlockTexturePath(item.id);
+                
+                if (texturePath) {
+                    // Set the background image to the block texture
+                    itemEl.style.backgroundImage = `url('${texturePath}')`;
+                    itemEl.style.backgroundSize = 'cover';
+                    itemEl.style.backgroundPosition = 'center';
+                    itemEl.style.backgroundColor = 'transparent';
+                } else {
+                    // Fallback to just showing block ID
+                    itemEl.textContent = item.id;
+                }
                 
                 // Add count if more than 1
                 if (item.count > 1) {
@@ -285,7 +325,20 @@ export class Inventory {
                 // Create item display
                 const itemEl = document.createElement('div');
                 itemEl.className = 'item';
-                itemEl.textContent = item.id;
+                
+                // Get block definition to get texture
+                const texturePath = this.getBlockTexturePath(item.id);
+                
+                if (texturePath) {
+                    // Set the background image to the block texture
+                    itemEl.style.backgroundImage = `url('${texturePath}')`;
+                    itemEl.style.backgroundSize = 'cover';
+                    itemEl.style.backgroundPosition = 'center';
+                    itemEl.style.backgroundColor = 'transparent';
+                } else {
+                    // Fallback to just showing block ID
+                    itemEl.textContent = item.id;
+                }
                 
                 // Add count if more than 1
                 if (item.count > 1) {

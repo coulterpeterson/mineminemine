@@ -108,37 +108,37 @@ export const blocks = {
 // For complex blocks, object maps faces (top, bottom, side, front, back, etc.)
 // UV coordinates will be added by the loadTextures function later.
 export const blockDefs = {
-    [blocks.STONE]: { name: 'Stone', texture: 'stone', hardness: 1.5, tool: 'pickaxe', requiredTier: 'wood' },
-    [blocks.GRASS]: { name: 'Grass Block', texture: { top: 'grass_block_top', bottom: 'dirt', side: 'grass_block_side' }, hardness: 0.6 },
-    [blocks.DIRT]: { name: 'Dirt', texture: 'dirt', hardness: 0.5, tool: 'shovel' },
-    [blocks.COBBLESTONE]: { name: 'Cobblestone', texture: 'cobblestone', hardness: 2.0, tool: 'pickaxe', requiredTier: 'wood' },
-    [blocks.OAK_PLANKS]: { name: 'Oak Planks', texture: 'oak_planks', hardness: 2.0, tool: 'axe' },
-    [blocks.OAK_SAPLING]: { name: 'Oak Sapling', texture: 'oak_sapling', hardness: 0, transparent: true }, // Non-solid
-    [blocks.BEDROCK]: { name: 'Bedrock', texture: 'bedrock', hardness: -1 }, // Unbreakable
-    [blocks.WATER_STILL]: { name: 'Water', texture: 'water_still', hardness: 100, transparent: true, fluid: true }, // Animated, essentially unbreakable by hand
-    [blocks.LAVA_STILL]: { name: 'Lava', texture: 'lava_still', hardness: 100, transparent: true, light: 15, fluid: true }, // Animated, emits light
-    [blocks.SAND]: { name: 'Sand', texture: 'sand', hardness: 0.5, tool: 'shovel', gravity: true }, // Falls
-    [blocks.GRAVEL]: { name: 'Gravel', texture: 'gravel', hardness: 0.6, tool: 'shovel', gravity: true }, // Falls
-    [blocks.GOLD_ORE]: { name: 'Gold Ore', texture: 'gold_ore', hardness: 3.0, tool: 'pickaxe', requiredTier: 'iron' },
-    [blocks.IRON_ORE]: { name: 'Iron Ore', texture: 'iron_ore', hardness: 3.0, tool: 'pickaxe', requiredTier: 'stone' },
-    [blocks.COAL_ORE]: { name: 'Coal Ore', texture: 'coal_ore', hardness: 3.0, tool: 'pickaxe', requiredTier: 'wood' },
-    [blocks.OAK_LOG]: { name: 'Oak Log', texture: { top: 'oak_log_top', bottom: 'oak_log_top', side: 'oak_log' }, hardness: 2.0, tool: 'axe' },
-    [blocks.OAK_LEAVES]: { name: 'Oak Leaves', texture: 'oak_leaves', hardness: 0.2, tool: 'shears', transparent: true }, // Needs transparency handling
-    [blocks.GLASS]: { name: 'Glass', texture: 'glass', hardness: 0.3, transparent: true },
-    [blocks.SANDSTONE]: { name: 'Sandstone', texture: { top: 'sandstone_top', bottom: 'sandstone_bottom', side: 'sandstone' }, hardness: 0.8, tool: 'pickaxe', requiredTier: 'wood' },
-    [blocks.GOLD_BLOCK]: { name: 'Block of Gold', texture: 'gold_block', hardness: 3.0, tool: 'pickaxe', requiredTier: 'iron' },
-    [blocks.IRON_BLOCK]: { name: 'Block of Iron', texture: 'iron_block', hardness: 5.0, tool: 'pickaxe', requiredTier: 'stone' },
-    [blocks.TNT]: { name: 'TNT', texture: { top: 'tnt_top', bottom: 'tnt_bottom', side: 'tnt_side' }, hardness: 0 },
-    [blocks.BOOKSHELF]: { name: 'Bookshelf', texture: { top: 'oak_planks', bottom: 'oak_planks', side: 'bookshelf' }, hardness: 1.5, tool: 'axe' },
-    [blocks.MOSSY_COBBLESTONE]: { name: 'Mossy Cobblestone', texture: 'mossy_cobblestone', hardness: 2.0, tool: 'pickaxe', requiredTier: 'wood' },
-    [blocks.OBSIDIAN]: { name: 'Obsidian', texture: 'obsidian', hardness: 50.0, tool: 'pickaxe', requiredTier: 'diamond' },
-    [blocks.TORCH]: { name: 'Torch', texture: 'torch', hardness: 0, transparent: true, light: 14, model: 'torch' }, // Special model needed
-    [blocks.OAK_STAIRS]: { name: 'Oak Stairs', texture: 'oak_planks', hardness: 2.0, tool: 'axe', transparent: true, model: 'stairs' }, // Special geometry
-    [blocks.CHEST]: { name: 'Chest', texture: 'oak_planks', hardness: 2.5, tool: 'axe', transparent: true, model: 'chest' }, // Placeholder texture, needs entity/model
-    [blocks.DIAMOND_ORE]: { name: 'Diamond Ore', texture: 'diamond_ore', hardness: 3.0, tool: 'pickaxe', requiredTier: 'iron' },
-    [blocks.DIAMOND_BLOCK]: { name: 'Block of Diamond', texture: 'diamond_block', hardness: 5.0, tool: 'pickaxe', requiredTier: 'iron' },
-    [blocks.CRAFTING_TABLE]: { name: 'Crafting Table', texture: { top: 'crafting_table_top', bottom: 'oak_planks', side: 'crafting_table_side', front: 'crafting_table_front' }, hardness: 2.5, tool: 'axe' },
-    [blocks.COBBLESTONE_STAIRS]: { name: 'Cobblestone Stairs', texture: 'cobblestone', hardness: 2.0, tool: 'pickaxe', requiredTier: 'wood', transparent: true, model: 'stairs' }, // Special geometry
+    [blocks.STONE]: { name: 'Stone', texture: 'stone', hardness: 1.5, tool: 'pickaxe', requiredTier: 'wood', solid: true },
+    [blocks.GRASS]: { name: 'Grass Block', texture: { top: 'grass_block_top', bottom: 'dirt', side: 'grass_block_side' }, hardness: 0.6, solid: true },
+    [blocks.DIRT]: { name: 'Dirt', texture: 'dirt', hardness: 0.5, tool: 'shovel', solid: true },
+    [blocks.COBBLESTONE]: { name: 'Cobblestone', texture: 'cobblestone', hardness: 2.0, tool: 'pickaxe', requiredTier: 'wood', solid: true },
+    [blocks.OAK_PLANKS]: { name: 'Oak Planks', texture: 'oak_planks', hardness: 2.0, tool: 'axe', solid: true },
+    [blocks.OAK_SAPLING]: { name: 'Oak Sapling', texture: 'oak_sapling', hardness: 0, transparent: true, solid: false }, // Non-solid
+    [blocks.BEDROCK]: { name: 'Bedrock', texture: 'bedrock', hardness: -1, solid: true }, // Unbreakable but solid
+    [blocks.WATER_STILL]: { name: 'Water', texture: 'water_still', hardness: 100, transparent: true, fluid: true, solid: false }, // Animated, essentially unbreakable by hand, not solid
+    [blocks.LAVA_STILL]: { name: 'Lava', texture: 'lava_still', hardness: 100, transparent: true, light: 15, fluid: true, solid: false }, // Animated, emits light, not solid
+    [blocks.SAND]: { name: 'Sand', texture: 'sand', hardness: 0.5, tool: 'shovel', gravity: true, solid: true }, // Falls
+    [blocks.GRAVEL]: { name: 'Gravel', texture: 'gravel', hardness: 0.6, tool: 'shovel', gravity: true, solid: true }, // Falls
+    [blocks.GOLD_ORE]: { name: 'Gold Ore', texture: 'gold_ore', hardness: 3.0, tool: 'pickaxe', requiredTier: 'iron', solid: true },
+    [blocks.IRON_ORE]: { name: 'Iron Ore', texture: 'iron_ore', hardness: 3.0, tool: 'pickaxe', requiredTier: 'stone', solid: true },
+    [blocks.COAL_ORE]: { name: 'Coal Ore', texture: 'coal_ore', hardness: 3.0, tool: 'pickaxe', requiredTier: 'wood', solid: true },
+    [blocks.OAK_LOG]: { name: 'Oak Log', texture: { top: 'oak_log_top', bottom: 'oak_log_top', side: 'oak_log' }, hardness: 2.0, tool: 'axe', solid: true },
+    [blocks.OAK_LEAVES]: { name: 'Oak Leaves', texture: 'oak_leaves', hardness: 0.2, tool: 'shears', transparent: true, solid: false }, // Needs transparency handling, not solid
+    [blocks.GLASS]: { name: 'Glass', texture: 'glass', hardness: 0.3, transparent: true, solid: false }, // Not solid for collision? Or depends on game? Let's say false.
+    [blocks.SANDSTONE]: { name: 'Sandstone', texture: { top: 'sandstone_top', bottom: 'sandstone_bottom', side: 'sandstone' }, hardness: 0.8, tool: 'pickaxe', requiredTier: 'wood', solid: true },
+    [blocks.GOLD_BLOCK]: { name: 'Block of Gold', texture: 'gold_block', hardness: 3.0, tool: 'pickaxe', requiredTier: 'iron', solid: true },
+    [blocks.IRON_BLOCK]: { name: 'Block of Iron', texture: 'iron_block', hardness: 5.0, tool: 'pickaxe', requiredTier: 'stone', solid: true },
+    [blocks.TNT]: { name: 'TNT', texture: { top: 'tnt_top', bottom: 'tnt_bottom', side: 'tnt_side' }, hardness: 0, solid: true },
+    [blocks.BOOKSHELF]: { name: 'Bookshelf', texture: { top: 'oak_planks', bottom: 'oak_planks', side: 'bookshelf' }, hardness: 1.5, tool: 'axe', solid: true },
+    [blocks.MOSSY_COBBLESTONE]: { name: 'Mossy Cobblestone', texture: 'mossy_cobblestone', hardness: 2.0, tool: 'pickaxe', requiredTier: 'wood', solid: true },
+    [blocks.OBSIDIAN]: { name: 'Obsidian', texture: 'obsidian', hardness: 50.0, tool: 'pickaxe', requiredTier: 'diamond', solid: true },
+    [blocks.TORCH]: { name: 'Torch', texture: 'torch', hardness: 0, transparent: true, light: 14, model: 'torch', solid: false }, // Special model needed, not solid
+    [blocks.OAK_STAIRS]: { name: 'Oak Stairs', texture: 'oak_planks', hardness: 2.0, tool: 'axe', transparent: true, model: 'stairs', solid: false }, // Special geometry, handle collision separately? Treat as non-solid for simple check.
+    [blocks.CHEST]: { name: 'Chest', texture: 'oak_planks', hardness: 2.5, tool: 'axe', transparent: true, model: 'chest', solid: false }, // Placeholder texture, needs entity/model, treat as non-solid
+    [blocks.DIAMOND_ORE]: { name: 'Diamond Ore', texture: 'diamond_ore', hardness: 3.0, tool: 'pickaxe', requiredTier: 'iron', solid: true },
+    [blocks.DIAMOND_BLOCK]: { name: 'Block of Diamond', texture: 'diamond_block', hardness: 5.0, tool: 'pickaxe', requiredTier: 'iron', solid: true },
+    [blocks.CRAFTING_TABLE]: { name: 'Crafting Table', texture: { top: 'crafting_table_top', bottom: 'oak_planks', side: 'crafting_table_side', front: 'crafting_table_front' }, hardness: 2.5, tool: 'axe', solid: true },
+    [blocks.COBBLESTONE_STAIRS]: { name: 'Cobblestone Stairs', texture: 'cobblestone', hardness: 2.0, tool: 'pickaxe', requiredTier: 'wood', transparent: true, model: 'stairs', solid: false }, // Special geometry, treat as non-solid
     // ... Add definitions for water/lava flowing ...
 };
 
@@ -233,6 +233,20 @@ export async function loadTextures(THREE) {
                         // Restore context state
                         context.restore();
                         console.log('Applied green tint to grass_block_top texture');
+                    }
+                    
+                    // Apply blue tint to water textures
+                    if (texName === 'water_still' || texName === 'water_flow') {
+                        // Save context state before applying tint
+                        context.save();
+                        // Set blend mode to multiply for color tinting
+                        context.globalCompositeOperation = 'multiply';
+                        // Use a blue color for tinting
+                        context.fillStyle = 'rgb(64, 128, 255)'; // Blue tint for water
+                        context.fillRect(currentX, currentY, textureSize, textureSize);
+                        // Restore context state
+                        context.restore();
+                        console.log(`Applied blue tint to ${texName} texture`);
                     }
                 }
                 loadedTextures[texName] = texture; // Store the loaded texture itself if needed

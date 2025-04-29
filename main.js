@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { createControls } from './src/controls.js';
-import { World } from './src/world.js';
+import { World, GROUND_LEVEL } from './src/world.js';
 import { loadTextures, getTextureAtlas, getUVMap, blocks } from './src/blockRegistry.js';
 import { Inventory } from './src/inventory.js';
 
@@ -83,7 +83,7 @@ async function init() {
 
     // Camera
     camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-    camera.position.set(0, 1.8, 5); // Start slightly above "ground"
+    camera.position.set(0, GROUND_LEVEL + 10, 0); // Start above the surface
 
     // Renderer
     const canvas = document.getElementById('gameCanvas');
@@ -121,6 +121,10 @@ async function init() {
     world = new World(scene, textureAtlas, uvMap); // Now getWorld() can return this
     world.generate(); // Generate initial world with textures
     console.log("World created.");
+
+    // Add a helpful grid for reference
+    const gridHelper = new THREE.GridHelper(32, 32);
+    scene.add(gridHelper);
 
     // Add Interaction Listeners
     renderer.domElement.addEventListener('mousedown', onMouseDown);
@@ -479,12 +483,20 @@ function tryBreakBlockWithGamepad() {
     const intersection = getIntersectedBlock();
     if (!intersection) return;
     
-    const blockPos = intersection.object.userData;
+    const normal = intersection.face.normal;
+    const hitPoint = intersection.point;
     
-    if (blockPos.blockId !== blocks.BEDROCK) {
+    // Calculate block coordinates targeted for break
+    const x = Math.floor(hitPoint.x - normal.x * 0.5);
+    const y = Math.floor(hitPoint.y - normal.y * 0.5);
+    const z = Math.floor(hitPoint.z - normal.z * 0.5);
+    
+    const blockId = world.getBlockType(x, y, z);
+    
+    if (blockId !== blocks.BEDROCK) {
         // Add the block to inventory before removing it
-        inventory.addItem(blockPos.blockId);
-        world.removeBlock(blockPos.x, blockPos.y, blockPos.z);
+        inventory.addItem(blockId);
+        world.removeBlock(x, y, z);
     }
 }
 
@@ -495,20 +507,24 @@ function tryPlaceBlockWithGamepad() {
     const intersection = getIntersectedBlock();
     if (!intersection) return;
     
-    const blockPos = intersection.object.userData;
     const normal = intersection.face.normal;
+    const hitPoint = intersection.point;
     
-    const placePos = {
-        x: blockPos.x + normal.x,
-        y: blockPos.y + normal.y,
-        z: blockPos.z + normal.z
-    };
+    // Calculate block coordinates
+    const x = Math.floor(hitPoint.x - normal.x * 0.5);
+    const y = Math.floor(hitPoint.y - normal.y * 0.5);
+    const z = Math.floor(hitPoint.z - normal.z * 0.5);
+    
+    // Calculate position for new block
+    const placeX = x + normal.x;
+    const placeY = y + normal.y;
+    const placeZ = z + normal.z;
     
     // Get block from the current selected hotbar slot
     const selectedItem = inventory.getSelectedBlock();
     if (selectedItem && selectedItem.count > 0) {
         // Place the block and remove it from inventory if successful
-        world.addBlock(placePos.x, placePos.y, placePos.z, selectedItem.id);
+        world.placeBlock(placeX, placeY, placeZ, selectedItem.id);
         inventory.removeSelectedItem();
     }
 }
@@ -520,12 +536,16 @@ function applyDeadzone(value) {
 
 function getIntersectedBlock() {
     const currentWorld = getWorld();
-    if (!currentWorld) return null; // World not ready yet
+    if (!currentWorld || !currentWorld.chunks) return null;
 
     raycaster.setFromCamera(pointer, camera);
-    const meshes = Object.values(currentWorld.meshes);
+    // Gather all rendered chunk meshes for intersection
+    const meshes = [];
+    for (const key in currentWorld.chunks) {
+        const chunk = currentWorld.chunks[key];
+        if (chunk && chunk.mesh) meshes.push(chunk.mesh);
+    }
     const intersects = raycaster.intersectObjects(meshes);
-
     if (intersects.length > 0) {
         const intersection = intersects[0];
         if (intersection.distance < interactionDistance) {
@@ -557,33 +577,33 @@ function onMouseDown(event) {
     const intersection = getIntersectedBlock();
     if (!intersection) return;
 
-    const intersectedMesh = intersection.object;
-    const blockPos = intersectedMesh.userData;
     const normal = intersection.face.normal;
+    const hitPoint = intersection.point;
+    // Calculate block coordinates targeted for break
+    const x = Math.floor(hitPoint.x - normal.x * 0.5);
+    const y = Math.floor(hitPoint.y - normal.y * 0.5);
+    const z = Math.floor(hitPoint.z - normal.z * 0.5);
 
     if (event.button === 0) { // Left click - Break block
-        console.log(`Left click on: ${blockPos.x}, ${blockPos.y}, ${blockPos.z}`);
-        if (blockPos.blockId !== blocks.BEDROCK) {
-            // Add the block to inventory before removing it
-            inventory.addItem(blockPos.blockId);
-            currentWorld.removeBlock(blockPos.x, blockPos.y, blockPos.z);
+        const blockId = currentWorld.getBlockType(x, y, z);
+        console.log(`Left click on: ${x}, ${y}, ${z}`);
+        if (blockId !== blocks.BEDROCK) {
+            inventory.addItem(blockId);
+            currentWorld.removeBlock(x, y, z);
         } else {
             console.log("Cannot break bedrock!");
         }
     } else if (event.button === 2) { // Right click - Place block
-        const placePos = {
-            x: blockPos.x + normal.x,
-            y: blockPos.y + normal.y,
-            z: blockPos.z + normal.z
-        };
+        // Calculate position to place new block adjacent to target
+        const placeX = x + normal.x;
+        const placeY = y + normal.y;
+        const placeZ = z + normal.z;
         console.log(`Right click face normal: ${normal.x}, ${normal.y}, ${normal.z}`);
-        console.log(`Placing block at: ${placePos.x}, ${placePos.y}, ${placePos.z}`);
+        console.log(`Placing block at: ${placeX}, ${placeY}, ${placeZ}`);
 
-        // Get block from the current selected hotbar slot
         const selectedItem = inventory.getSelectedBlock();
         if (selectedItem && selectedItem.count > 0) {
-            // Place the block and remove it from inventory if successful
-            currentWorld.addBlock(placePos.x, placePos.y, placePos.z, selectedItem.id);
+            currentWorld.placeBlock(placeX, placeY, placeZ, selectedItem.id);
             inventory.removeSelectedItem();
         } else {
             console.log("No block selected in hotbar!");
@@ -638,9 +658,33 @@ function animate() {
     // Poll gamepads to update their state
     pollGamepads();
 
-    controlsManager.update(delta);
+    // Get player controls before any updates
+    const playerControls = controlsManager.getObject();
 
-    // TODO: Add world update logic (e.g., chunk loading/unloading)
+    // Only update controls/player position if world is ready to apply gravity
+    if (!world || world.isSafeToApplyGravity) {
+        controlsManager.update(delta);
+    }
+
+    // Update world chunks based on player position
+    if (world && controlsManager) {
+        const playerPosition = playerControls.position;
+        const result = world.updateChunks(playerPosition);
+        
+        // Handle any recovery actions
+        if (result && result.action === 'teleport') {
+            console.warn("Emergency teleport activated!");
+            
+            // Teleport player to last safe position
+            playerControls.position.copy(result.position);
+            
+            // Reset velocity to prevent continued falling
+            const playerVelocity = controlsManager.getVelocity();
+            if (playerVelocity) {
+                playerVelocity.set(0, 0, 0);
+            }
+        }
+    }
 
     renderer.render(scene, camera);
 
